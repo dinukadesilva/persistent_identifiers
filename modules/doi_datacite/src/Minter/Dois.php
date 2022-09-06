@@ -161,6 +161,28 @@ class Dois implements MinterInterface {
   }
 
 
+  public function mintDraft($entity) {
+    global $base_url;
+
+    $datacite_array = [
+      'data' => [
+        'type' => 'dois',
+        'attributes' => [
+          'prefix' => $this->doi_prefix
+        ]
+      ]
+    ];
+
+    $datacite_json = json_encode($datacite_array);
+
+    // Define a hook so people can write modules to alter the JSON.
+    \Drupal::moduleHandler()->invokeAll('doi_datacite_json_alter', [$entity, $extra, &$datacite_json]);
+
+    $minted_doi = $this->postToApi($entity->id(), $datacite_json);
+    return $minted_doi;
+  }
+
+
   /**
    * POSTs to DataCite REST API to create and publish the DOI.
    *
