@@ -227,6 +227,7 @@ class Dois implements MinterInterface
       ]));
 
       return [
+        "doi_datacite_identifier" => "",//$response_json["attributes"]["identifiers"][0]["identifier"],
         "doi_datacite_title" => $response_json["attributes"]["titles"][0]["title"],
         "doi_datacite_url" => $response_json["attributes"]["url"],
         "doi_datacite_creator" => $response_json["attributes"]["creators"][0]["name"],
@@ -280,6 +281,7 @@ class Dois implements MinterInterface
       ]));
 
       return [
+        "doi_datacite_identifier" => "", //$response_json["attributes"]["identifiers"][0]["identifier"],
         "doi_datacite_title" => $response_json["attributes"]["titles"][0]["title"],
         "doi_datacite_url" => $response_json["attributes"]["url"],
         "doi_datacite_creator" => $response_json["attributes"]["creators"][0]["name"],

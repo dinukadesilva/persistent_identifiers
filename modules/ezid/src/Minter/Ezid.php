@@ -2,7 +2,6 @@
 
 namespace Drupal\ezid\Minter;
 
-use Psr7\Message;
 use Drupal\persistent_identifiers\MinterInterface;
 use GuzzleHttp\Exception\RequestException;
 
@@ -48,26 +47,52 @@ class Ezid implements MinterInterface {
    *   The identifier.
    */
   public function mint($entity, $extra = NULL) {
-    $password = \Drupal::state()->get('ezid.password');
-
     $config = \Drupal::config('ezid.settings');
     $ezid_user = $config->get('ezid_user');
+    $password = $config->get('ezid_password');
     $ezid_api_endpoint = $config->get('ezid_api_endpoint');
     $ezid_shoulder = $config->get('ezid_shoulder');
-
-    $host = \Drupal::request()->getSchemeAndHttpHost();
-    $target = $host . $entity->toUrl()->toString();
-
-    // @TODO Add support for Dublin Core and additional fields based on bundle.
-    $data = "_profile: erc\n";
-    $data = $data . "what: " . $entity->label() . "\n";
-    $data = $data . "_target: $target\n";
 
     $client = \Drupal::httpClient();
     try {
       $request = $client->request(
         'POST',
         $ezid_api_endpoint . '/shoulder/' . $ezid_shoulder,
+        [
+          'auth' => [$ezid_user, $password],
+          'headers' => ['Content-Type' => 'text/plain; charset=UTF-8']
+        ]);
+      \Drupal::logger('persistent identifiers')->info(print_r($request, TRUE));
+      $message = $request->getBody();
+      if (strpos($message, "success: ") === 0) {
+        return substr($message, 9);
+      }
+      \Drupal::logger('persistent identifiers')->error("Could not mint ark: $message");
+      return FALSE;
+    }
+    catch (Exception $e) {
+      $message = $e->getMessage();
+      \Drupal::logger('persistent identifiers')->error(preg_replace('/Authorization: Basic \w+/', 'Authentication Redacted', $message));
+      return FALSE;
+    }
+  }
+
+  public function save($pid, $extra = NULL) {
+    $config = \Drupal::config('ezid.settings');
+    $ezid_user = $config->get('ezid_user');
+    $password = $config->get('ezid_password');
+    $ezid_api_endpoint = $config->get('ezid_api_endpoint');
+
+    $data = "";
+    foreach ($extra as $key => $value){
+      $data = $data . "$key: $value\n";
+    }
+
+    $client = \Drupal::httpClient();
+    try {
+      $request = $client->request(
+        'POST',
+        $ezid_api_endpoint . '/id/' . $pid,
         [
           'auth' => [$ezid_user, $password],
           'headers' => ['Content-Type' => 'text/plain; charset=UTF-8'],
@@ -78,14 +103,49 @@ class Ezid implements MinterInterface {
       if (strpos($message, "success: ") === 0) {
         return substr($message, 9);
       }
-      \Drupal::logger('persistent identifiers')->error("Could not mint: $message");
+      \Drupal::logger('persistent identifiers')->error("Could not save ark identifier metadata : $message");
       return FALSE;
     }
-    catch (RequestException $e) {
-      $message = Message::toString($e->getRequest());
-      if ($e->hasResponse()) {
-        $message = $message . "\n" . Message::toString($e->getResponse());
+    catch (Exception $e) {
+      $message = $e->getMessage();
+      \Drupal::logger('persistent identifiers')->error(preg_replace('/Authorization: Basic \w+/', 'Authentication Redacted', $message));
+      return FALSE;
+    }
+  }
+
+
+  public function fetch($pid) {
+    $config = \Drupal::config('ezid.settings');
+    $ezid_user = $config->get('ezid_user');
+    $password = $config->get('ezid_password');
+    $ezid_api_endpoint = $config->get('ezid_api_endpoint');
+
+    $client = \Drupal::httpClient();
+    try {
+      $request = $client->request(
+        'GET',
+        $ezid_api_endpoint . '/id/' . $pid,
+        [
+          'auth' => [$ezid_user, $password],
+          'headers' => ['Content-Type' => 'text/plain; charset=UTF-8']
+        ]);
+      \Drupal::logger('persistent identifiers')->info(print_r($request, TRUE));
+      $message = $request->getBody();
+      if (strpos($message, "success: ") === 0) {
+        $response_json = [];
+        $response_lines = explode("\n", $message);
+        foreach ($response_lines as $response_line) {
+          $response_line_words = explode(": ", $response_line);
+          $response_json[$response_line_words[0]] = substr($response_line, strlen($response_line_words[0]) + 2);
+        }
+
+        return $response_json;
       }
+      \Drupal::logger('persistent identifiers')->error("Could not fetch ark identifier : $message");
+      return FALSE;
+    }
+    catch (Exception $e) {
+      $message = $e->getMessage();
       \Drupal::logger('persistent identifiers')->error(preg_replace('/Authorization: Basic \w+/', 'Authentication Redacted', $message));
       return FALSE;
     }
