@@ -22,7 +22,13 @@ use Drupal\Core\Form\FormStateInterface;
 function sample_minter_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
   if ($form_id == 'persistent_identifiers_admin_settings') {
     $config = \Drupal::config('sample_minter.settings');
-    $form['sample_minter_namespace'] = [
+
+    $form['sample'] = [
+      '#type' => 'details',
+      '#title' => 'Sample',
+      "#open" => True
+    ];
+    $form['sample']['sample_minter_namespace'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Sample identifier namespace',

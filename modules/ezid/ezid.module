@@ -13,7 +13,14 @@ use Drupal\Core\Form\FormStateInterface;
 function ezid_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
   if ($form_id == 'persistent_identifiers_admin_settings') {
     $config = \Drupal::config('ezid.settings');
-    $form['ezid_user'] = [
+
+    $form['ezid'] = [
+      '#type' => 'details',
+      '#title' => 'EZID',
+      "#open" => True
+    ];
+
+    $form['ezid']['ezid_user'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'EZID Username',
@@ -25,7 +32,7 @@ function ezid_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['ezid_password'] = [
+    $form['ezid']['ezid_password'] = [
       '#type' => 'password',
       '#title' => 'EZID Password',
       '#description' => t("The password used to authenticate for the API. Leave blank to make no changes, use an invalid string to disable if need be."),
@@ -36,7 +43,7 @@ function ezid_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['ezid_api_endpoint'] = [
+    $form['ezid']['ezid_api_endpoint'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'EZID API Endpoint',
@@ -49,7 +56,7 @@ function ezid_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['ezid_shoulder'] = [
+    $form['ezid']['ezid_shoulder'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Namespace (shoulder)',

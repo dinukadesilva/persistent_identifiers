@@ -22,7 +22,13 @@ use Drupal\Core\Form\FormStateInterface;
 function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
   if ($form_id == 'persistent_identifiers_admin_settings') {
     $config = \Drupal::config('hdl.settings');
-    $form['hdl_prefix'] = [
+
+    $form['hdl'] = [
+      '#type' => 'details',
+      '#title' => 'Handle',
+      "#open" => True
+    ];
+    $form['hdl']['hdl_prefix'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Handle identifier prefix',
@@ -35,7 +41,7 @@ function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['hdl_qualifier'] = [
+    $form['hdl']['hdl_qualifier'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Handle identifier qualifier',
@@ -48,7 +54,7 @@ function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['hdl_admin_handle'] = [
+    $form['hdl']['hdl_admin_handle'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Admin Handle',
@@ -61,7 +67,7 @@ function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['hdl_admin_index'] = [
+    $form['hdl']['hdl_admin_index'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Admin Index',
@@ -74,7 +80,7 @@ function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['hdl_handle_permissions'] = [
+    $form['hdl']['hdl_handle_permissions'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Handle Permissions',
@@ -87,7 +93,7 @@ function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['hdl_handle_api_endpoint'] = [
+    $form['hdl']['hdl_handle_api_endpoint'] = [
       '#type' => 'textfield',
       '#access' => TRUE,
       '#title' => 'Handle API Endpoint',
@@ -100,7 +106,7 @@ function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
       ],
     ];
 
-    $form['hdl_handle_basic_auth_password'] = [
+    $form['hdl']['hdl_handle_basic_auth_password'] = [
       '#type' => 'password',
       // '#access' => TRUE,
       '#title' => 'Handle Basic Auth Password',
