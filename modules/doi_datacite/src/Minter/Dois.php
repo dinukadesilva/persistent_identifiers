@@ -282,12 +282,12 @@ class Dois implements MinterInterface
 
       return [
         "doi_datacite_identifier" => "", //$response_json["attributes"]["identifiers"][0]["identifier"],
-        "doi_datacite_title" => $response_json["attributes"]["titles"][0]["title"],
-        "doi_datacite_url" => $response_json["attributes"]["url"],
-        "doi_datacite_creator" => $response_json["attributes"]["creators"][0]["name"],
-        "doi_datacite_publisher" => $response_json["attributes"]["publisher"],
-        "doi_datacite_publication_year" => $response_json["attributes"]["publicationYear"],
-        "doi_datacite_resource_type" => $response_json["attributes"]["types"]["resourceTypeGeneral"]
+        "doi_datacite_title" => $response_json["attributes"]["titles"][0]["title"] ?? NULL,
+        "doi_datacite_url" => $response_json["attributes"]["url"] ?? NULL,
+        "doi_datacite_creator" => $response_json["attributes"]["creators"][0]["name"] ?? NULL,
+        "doi_datacite_publisher" => $response_json["attributes"]["publisher"] ?? NULL,
+        "doi_datacite_publication_year" => $response_json["attributes"]["publicationYear"] ?? NULL,
+        "doi_datacite_resource_type" => $response_json["attributes"]["types"]["resourceTypeGeneral"] ?? NULL
       ];
     } else {
       switch ($http_code) {
