@@ -18,11 +18,6 @@ class Dois implements MinterInterface
   public function __construct()
   {
     $config = \Drupal::config('doi_datacite.settings');
-    $this->api_endpoint = $config->get('doi_datacite_api_endpoint');
-    $this->doi_prefix = $config->get('doi_datacite_prefix');
-    $this->doi_suffix_source = $config->get('doi_datacite_suffix_source');
-    $this->api_username = $config->get('doi_datacite_username');
-    $this->api_password = $config->get('doi_datacite_password');
   }
 
   /**
@@ -85,18 +80,20 @@ class Dois implements MinterInterface
   public function mint($entity, $extra = NULL)
   {
     global $base_url;
+    $config = \Drupal::config('doi_datacite.settings');
+
     // This minter needs $extra.
     if (is_null($extra)) {
       return NULL;
     }
 
-    if ($this->doi_suffix_source == 'id') {
+    if ($config->get('doi_datacite_suffix_source') == 'id') {
       $suffix = $entity->id();
-      $doi = $this->doi_prefix . '/' . $suffix;
+      $doi = $config->get('doi_datacite_prefix') . '/' . $suffix;
     }
-    if ($this->doi_suffix_source == 'uuid') {
+    if ($config->get('doi_datacite_suffix_source') == 'uuid') {
       $suffix = $entity->Uuid();
-      $doi = $this->doi_prefix . '/' . $suffix;
+      $doi = $config->get('doi_datacite_prefix') . '/' . $suffix;
     }
 
     // If $extra is from the Views Bulk Operations Action
@@ -149,8 +146,8 @@ class Dois implements MinterInterface
       $datacite_array['data']['attributes'] = $attributes;
     }
 
-    if ($this->doi_suffix_source == 'auto') {
-      $datacite_array['data']['attributes']['prefix'] = $this->doi_prefix;
+    if ($config->get('doi_datacite_suffix_source') == 'auto') {
+      $datacite_array['data']['attributes']['prefix'] = $config->get('doi_datacite_prefix');
     } else {
       $datacite_array['data']['id'] = $doi;
       $datacite_array['data']['attributes']['doi'] = $doi;
@@ -168,6 +165,8 @@ class Dois implements MinterInterface
   public function save($doi = NULL, $extra = NULL)
   {
     global $base_url;
+    $config = \Drupal::config('doi_datacite.settings');
+
     // This save needs $extra.
     if (is_null($extra)) {
       return NULL;
@@ -177,6 +176,7 @@ class Dois implements MinterInterface
       "data" => [
         "type" => "dois",
         "attributes" => [
+          "doi" => $doi,
           "event" => "publish",
           "creators" => [[
             "name" => $extra['doi_datacite_creator']
@@ -197,7 +197,7 @@ class Dois implements MinterInterface
     ];
 
     if (is_null($doi)) {
-      $datacite_json["data"]["attributes"]["prefix"] = $this->doi_prefix;
+      $datacite_json["data"]["attributes"]["prefix"] = $config->get('doi_datacite_prefix');
     } else {
       $datacite_json["data"]["id"] = $doi;
       $datacite_json["data"]["attributes"]["doi"] = $doi;
@@ -208,8 +208,8 @@ class Dois implements MinterInterface
     // Define a hook so people can write modules to alter the JSON.
     // \Drupal::moduleHandler()->invokeAll('doi_datacite_json_alter', [$entity, $extra, &$datacite_json]);
 
-    $response = \Drupal::httpClient()->put($this->api_endpoint . "/" . $doi, [
-      'auth' => [$this->api_username, $this->api_password],
+    $response = \Drupal::httpClient()->put($config->get('doi_datacite_api_endpoint') . "/" . $doi, [
+      'auth' => [$config->get('doi_datacite_username'), $config->get('doi_datacite_password')],
       'body' => $datacite_json,
       'http_errors' => FALSE,
       'headers' => [
@@ -262,9 +262,10 @@ class Dois implements MinterInterface
   public function fetch($doi)
   {
     global $base_url;
+    $config = \Drupal::config('doi_datacite.settings');
 
-    $response = \Drupal::httpClient()->get($this->api_endpoint . "/" . $doi, [
-      'auth' => [$this->api_username, $this->api_password],
+    $response = \Drupal::httpClient()->get($config->get('doi_datacite_api_endpoint') . "/" . $doi, [
+      'auth' => [$config->get('doi_datacite_username'), $config->get('doi_datacite_password')],
       'http_errors' => FALSE,
       'headers' => [
         'Content-Type' => 'application/vnd.api+json',
@@ -315,12 +316,13 @@ class Dois implements MinterInterface
   public function mintDraft()
   {
     global $base_url;
+    $config = \Drupal::config('doi_datacite.settings');
 
     $datacite_array = [
       'data' => [
         'type' => 'dois',
         'attributes' => [
-          'prefix' => $this->doi_prefix
+          'prefix' => $config->get('doi_datacite_prefix')
         ]
       ]
     ];
@@ -346,8 +348,10 @@ class Dois implements MinterInterface
    */
   public function postToApi($datacite_json)
   {
-    $response = \Drupal::httpClient()->post($this->api_endpoint, [
-      'auth' => [$this->api_username, $this->api_password],
+    $config = \Drupal::config('doi_datacite.settings');
+
+    $response = \Drupal::httpClient()->post($config->get('doi_datacite_api_endpoint'), [
+      'auth' => [$config->get('doi_datacite_username'), $config->get('doi_datacite_password')],
       'body' => $datacite_json,
       'http_errors' => FALSE,
       'headers' => [

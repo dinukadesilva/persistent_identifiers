@@ -15,7 +15,7 @@ use Drupal\Core\Url;
  */
 function doi_datacite_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
   // Inject fields required by this minter into the Persistent Identifier admin form.
-  if ($form_id == 'persistent_identifiers_admin_settings') {
+  if ($form_id == 'persistent_identifiers_admin_settings' || $form_id == 'persistent_fields_admin_settings') {
     $pid_config = \Drupal::config('persistent_identifiers.settings');
     $config = \Drupal::config('doi_datacite.settings');
 

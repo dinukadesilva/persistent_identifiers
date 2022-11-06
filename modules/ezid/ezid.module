@@ -11,7 +11,7 @@ use Drupal\Core\Form\FormStateInterface;
  * Implements hook_form_alter().
  */
 function ezid_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
-  if ($form_id == 'persistent_identifiers_admin_settings') {
+  if ($form_id == 'persistent_identifiers_admin_settings' || $form_id == 'persistent_fields_admin_settings') {
     $config = \Drupal::config('ezid.settings');
 
     $form['ezid'] = [
