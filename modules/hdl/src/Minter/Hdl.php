@@ -10,7 +10,8 @@ use Drupal\persistent_identifiers\MinterInterface;
  * Mints a persistent identifier using a configurable
  * namespace and a random string.
  */
-class Hdl implements MinterInterface {
+class Hdl implements MinterInterface
+{
 
   /**
    * Returns the minter's name.
@@ -18,7 +19,8 @@ class Hdl implements MinterInterface {
    * @return string
    *   Appears in the Persistent Identifiers config form.
    */
-  public function getName() {
+  public function getName()
+  {
     return t('Handle Minter');
   }
 
@@ -28,7 +30,8 @@ class Hdl implements MinterInterface {
    * @return string
    *   Appears in the entity edit form next to the checkbox.
    */
-  public function getPidType() {
+  public function getPidType()
+  {
     return t('Handle');
   }
 
@@ -47,24 +50,25 @@ class Hdl implements MinterInterface {
    * @return string
    *   The identifier.
    */
-  public function mint($entity, $extra = NULL) {
+  public function mint($entity, $extra = NULL)
+  {
     $config = \Drupal::config('hdl.settings');
     $handle_prefix = $config->get('hdl_prefix');
 
     if ($extra && array_key_exists('hdl_qualifier', $extra)) {
       $handle_type_qualifier = $extra['hdl_qualifier'];
-    }
-    else {
+    } else {
       $handle_type_qualifier = $config->get('hdl_qualifier');
     }
-    $handle = $handle_prefix . '/' . $handle_type_qualifier . '.' . $entity->id();
+    $handle = $handle_prefix . '/';// . $handle_type_qualifier . '.' . $entity->id();
     $host = \Drupal::request()->getSchemeAndHttpHost();
-    $url = $host . $entity->toUrl()->toString();
+    $url = "http://example.com"; //$host . $entity->toUrl()->toString();
     $admin_handle = $config->get('hdl_admin_handle');
     $handle_admin_index = $config->get('hdl_admin_index');
     $endpoint_url = $config->get('hdl_handle_api_endpoint');
     $permissions = $config->get('hdl_handle_permissions');
     $password = $config->get('hdl_handle_basic_auth_password');
+    $private_key_pem = $password; // $config->get('hdl_handle_private_key');
     $handle_json = [
       [
         'index' => 1,
@@ -88,18 +92,57 @@ class Hdl implements MinterInterface {
       ],
     ];
 
-    $client = \Drupal::httpClient();
-    try {
-      $request = $client->request('PUT', $endpoint_url . $handle . "?overwrite=true", ['json' => $handle_json, 'auth' => [$handle_admin_index . '%3A' . $admin_handle, $password], 'headers' => ['Content-Type' => 'application/json', 'Accept' => 'application/json']]);
-      \Drupal::logger('persistent identifiers')->info(print_r($request, TRUE));
-    } catch (ClientException $e) {
-      \Drupal::logger('persistent identifiers')->error(print_r($e, TRUE));
-      return FALSE;
-    } catch (GuzzleHttp\Exception\ConnectionException $e) {
-      \Drupal::logger('persistent identifiers')->erorr(print_r($e, TRUE));
-    }
-    $full_handle = "https://hdl.handle.net/" . $handle;
-    return $full_handle;
+    \Drupal::logger('persistent identifiers')->debug("##### Dinuka signature start");
+    $cnonce = $this->generateRandomString(16);
+
+    $response1 = \Drupal::httpClient()->post($endpoint_url . "/api/sessions", [
+      'headers' => [
+        'Authorization' => 'Handle cnonce="' . $cnonce . '"',
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json'
+      ],
+    ]);
+    $response1_body_array = json_decode($response1->getBody()->getContents(), TRUE);
+
+    $sessionId = $response1_body_array["sessionId"];
+    $nonce = $response1_body_array["nonce"];
+
+    $data = base64_decode($nonce) . base64_decode($cnonce);
+    openssl_sign($data, $signature, $private_key_pem, OPENSSL_ALGO_SHA256);
+    $signature = base64_encode($signature);
+
+    $response2 = \Drupal::httpClient()->PUT($endpoint_url . "/api/sessions/this", [
+      'headers' => [
+        'Authorization' => 'Handle sessionId="' . $sessionId . '",id="' . $handle_admin_index . ':' . $admin_handle . '",type="HS_PUBKEY",cnonce="' . $cnonce . '",alg="SHA256",signature="' . $signature . '"',
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json'
+      ],
+    ]);
+    $response2_body_array = json_decode($response2->getBody()->getContents(), TRUE);
+
+    $response3 = \Drupal::httpClient()->PUT($endpoint_url . "/api/handles/" . $admin_handle . "/?overwrite=false&mintNewSuffix=true", [
+      'headers' => [
+        'Authorization' => 'Handle sessionId="' . $sessionId . '"',
+        'Content-Type' => 'application/json',
+        'Accept' => 'application/json'
+      ],
+      'json' => $handle_json
+    ]);
+    $response3_body_array = json_decode($response3->getBody()->getContents(), TRUE);
+
+    return $response3_body_array["handle"];
   }
 
+  public function generateRandomString($length = 10)
+  {
+    $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    $charactersLength = strlen($characters);
+    $randomString = '';
+    for ($i = 0; $i < $length; $i++) {
+      $randomString .= $characters[rand(0, $charactersLength - 1)];
+    }
+    return $randomString;
+  }
 }
+
+

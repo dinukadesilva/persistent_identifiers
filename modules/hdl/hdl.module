@@ -107,11 +107,25 @@ function hdl_form_alter(&$form, FormStateInterface &$form_state, $form_id) {
     ];
 
     $form['hdl']['hdl_handle_basic_auth_password'] = [
-      '#type' => 'password',
+      '#type' => 'textarea',
       // '#access' => TRUE,
       '#title' => 'Handle Basic Auth Password',
       '#default_value' => $config->get('hdl_handle_basic_auth_password'),
       '#description' => t("The password to be used with the admin handle and index to authenticate for the API"),
+      '#states' => [
+        'visible' => [
+          ':input[id="persistent_identifiers_minter"]' => ['value' => 'hdl.minter.hdl'],
+        ],
+      ],
+    ];
+
+
+    $form['hdl']['hdl_handle_private_key'] = [
+      '#type' => 'textarea',
+      // '#access' => TRUE,
+      '#title' => 'Handle Private Key',
+      '#default_value' => $config->get('hdl_handle_private_key'),
+      '#description' => t("The private key to be used with the admin handle and index to authenticate for the API"),
       '#states' => [
         'visible' => [
           ':input[id="persistent_identifiers_minter"]' => ['value' => 'hdl.minter.hdl'],
@@ -143,6 +157,7 @@ function hdl_submit(array &$form, FormStateInterface $form_state) {
   $index = $form_state->getValue('hdl_admin_index', $existing_config->get('hdl_admin_index'));
   $permissions = $form_state->getValue('hdl_handle_permissions', $existing_config->get('hdl_handle_permissions'));
   $password = $form_state->getValue('hdl_handle_basic_auth_password', $existing_config->get('hdl_handle_basic_auth_password'));
+  $privateKey = $form_state->getValue('hdl_handle_private_key', $existing_config->get('hdl_handle_private_key'));
   $config_factory = \Drupal::configFactory();
   $config_factory->getEditable('hdl.settings')
     ->set('hdl_admin_handle', trim($admin_handle))
@@ -152,5 +167,6 @@ function hdl_submit(array &$form, FormStateInterface $form_state) {
     ->set('hdl_admin_index', trim($index))
     ->set('hdl_handle_permissions', trim($permissions))
     ->set('hdl_handle_basic_auth_password', trim($password))
+    ->set('hdl_handle_basic_private_key', trim($privateKey))
     ->save();
 }
