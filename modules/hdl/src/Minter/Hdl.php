@@ -56,8 +56,6 @@ class Hdl implements MinterInterface
     $config = \Drupal::config('hdl.settings');
     $admin_handle = $config->get('hdl_admin_handle');
     $endpoint_url = $config->get('hdl_handle_api_endpoint');
-    $handle_admin_index = $config->get('hdl_admin_index');
-    $permissions = $config->get('hdl_handle_permissions');
     $url = $extra["url"] ?? "";
     $handle_json = [
       [
@@ -87,10 +85,7 @@ class Hdl implements MinterInterface
   public function save($handle, $extra = NULL)
   {
     $config = \Drupal::config('hdl.settings');
-    $admin_handle = $config->get('hdl_admin_handle');
     $endpoint_url = $config->get('hdl_handle_api_endpoint');
-    $handle_admin_index = $config->get('hdl_admin_index');
-    $permissions = $config->get('hdl_handle_permissions');
     $url = $extra["url"] ?? "";
     $handle_json = [
       [
