@@ -56,13 +56,16 @@ class Hdl implements MinterInterface
     $config = \Drupal::config('hdl.settings');
     $admin_handle = $config->get('hdl_admin_handle');
     $endpoint_url = $config->get('hdl_handle_api_endpoint');
+    $handle_admin_index = $config->get('hdl_admin_index');
+    $permissions = $config->get('hdl_handle_permissions');
+    $url = $extra["url"] ?? "";
     $handle_json = [
       [
         'index' => 1,
         'type' => "URL",
         'data' => [
           'format' => "string",
-          'value' => $extra["url"] ?? "",
+          'value' => $url,
         ],
       ]
     ];
@@ -86,19 +89,22 @@ class Hdl implements MinterInterface
     $config = \Drupal::config('hdl.settings');
     $admin_handle = $config->get('hdl_admin_handle');
     $endpoint_url = $config->get('hdl_handle_api_endpoint');
+    $handle_admin_index = $config->get('hdl_admin_index');
+    $permissions = $config->get('hdl_handle_permissions');
+    $url = $extra["url"] ?? "";
     $handle_json = [
       [
         'index' => 1,
         'type' => "URL",
         'data' => [
           'format' => "string",
-          'value' => $extra["url"] ?? "",
+          'value' => $url,
         ],
       ]
     ];
 
     $sessionId = $this->getSessionId();
-    $response3 = \Drupal::httpClient()->PUT($endpoint_url . "/api/handles/" . $admin_handle . "/?overwrite=false&mintNewSuffix=true", [
+    $response3 = \Drupal::httpClient()->PUT($endpoint_url . "/api/handles/" . $handle, [
       'headers' => [
         'Authorization' => 'Handle sessionId="' . $sessionId . '"',
         'Content-Type' => 'application/json',
