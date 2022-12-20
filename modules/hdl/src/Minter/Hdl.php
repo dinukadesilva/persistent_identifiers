@@ -54,7 +54,6 @@ class Hdl implements MinterInterface
   public function mint($entity, $extra = NULL)
   {
     $config = \Drupal::config('hdl.settings');
-    // $url = "http://example.com"; //$host . $entity->toUrl()->toString();
     $admin_handle = $config->get('hdl_admin_handle');
     $endpoint_url = $config->get('hdl_handle_api_endpoint');
     $handle_json = [
@@ -67,8 +66,6 @@ class Hdl implements MinterInterface
         ],
       ]
     ];
-
-    \Drupal::logger('persistent identifiers')->debug("##### Dinuka signature start");
 
     $sessionId = $this->getSessionId();
     $response3 = \Drupal::httpClient()->PUT($endpoint_url . "/api/handles/" . $admin_handle . "/?overwrite=false&mintNewSuffix=true", [
@@ -100,8 +97,6 @@ class Hdl implements MinterInterface
       ]
     ];
 
-    \Drupal::logger('persistent identifiers')->debug("##### Dinuka signature start");
-
     $sessionId = $this->getSessionId();
     $response3 = \Drupal::httpClient()->PUT($endpoint_url . "/api/handles/" . $admin_handle . "/?overwrite=false&mintNewSuffix=true", [
       'headers' => [
@@ -129,9 +124,6 @@ class Hdl implements MinterInterface
       ]
     ]);
     $response3_body_array = json_decode($response3->getBody()->getContents(), TRUE);
-
-
-    \Drupal::logger('persistent identifiers')->debug("##### handle Fetch " . $handle . " : " . json_encode($response3_body_array));
 
     if (isset($response3_body_array["values"])) {
       foreach ($response3_body_array["values"] as $value) {

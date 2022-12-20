@@ -1,5 +1,4 @@
 hdl_prefix: '0.NA/20.500.14233'
-hdl_qualifier: 'R.2.N'
 hdl_admin_handle: '20.500.14233/HANDLE_ADMIN'
 hdl_admin_index: 300
 hdl_handle_api_endpoint: 'https://js-173-12.jetstream-cloud.org:8000'
